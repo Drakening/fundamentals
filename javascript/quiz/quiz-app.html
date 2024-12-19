@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            padding: 2rem;
+            background-color: #f5f5f5;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option {
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover:not(.answered) {
+            background-color: #f3f4f6;
+        }
+
+        .option.correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .option.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .option.dimmed {
+            opacity: 0.5;
+        }
+
+        .button {
+            background-color: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover:not(:disabled) {
+            background-color: #1d4ed8;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        .score {
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+
+        .result {
+            text-align: center;
+        }
+
+        .result-score {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-percentage {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container" class="card"></div>
+
+    <script>
+        class QuizApp {
+            constructor() {
+                this.currentQuestion = 0;
+                this.score = 0;
+                this.showResult = false;
+                this.isAnswered = false;
+                this.selectedAnswer = null;
+                this.container = document.getElementById('quiz-container');
+
+                this.questions = [
+                {
+    question: "What does the 'action' attribute in an HTML form specify?",
+    options: [
+        "The URL where the form data is sent",
+        "The method of form validation",
+        "The type of input fields to display",
+        "The CSS class for styling the form"
+    ],
+    answer: 0
+},
+{
+    question: "Which attribute is used to specify the method of sending form data in HTML?",
+    options: [
+        "method",
+        "action",
+        "enctype",
+        "target"
+    ],
+    answer: 0
+},
+{
+    question: "How do you make a form input field required in HTML?",
+    options: [
+        "required",
+        "mandatory",
+        "must-fill",
+        "input-required"
+    ],
+    answer: 0
+},
+{
+    question: "Which CSS property is used to change the background color of a form input field?",
+    options: [
+        "background-color",
+        "color",
+        "input-background",
+        "field-background"
+    ],
+    answer: 0
+},
+{
+    question: "Which of the following CSS properties is used to create a flex container?",
+    options: [
+        "display: flex",
+        "display: grid",
+        "display: block",
+        "flex-container: true"
+    ],
+    answer: 0
+},
+{
+    question: "How do you align items horizontally in a flex container?",
+    options: [
+        "justify-content",
+        "align-items",
+        "align-content",
+        "justify-items"
+    ],
+    answer: 0
+},
+{
+    question: "What does the 'flex-wrap' property do in CSS?",
+    options: [
+        "Allows flex items to wrap onto multiple lines",
+        "Aligns flex items vertically",
+        "Sets the flex direction",
+        "Sets the order of flex items"
+    ],
+    answer: 0
+},
+{
+    question: "What CSS property is used to create a grid container?",
+    options: [
+        "display: grid",
+        "grid-layout: true",
+        "container: grid",
+        "grid-display"
+    ],
+    answer: 0
+},
+{
+    question: "Which property defines the number of columns in a CSS grid layout?",
+    options: [
+        "grid-template-columns",
+        "grid-columns",
+        "columns",
+        "grid-columns-template"
+    ],
+    answer: 0
+},
+{
+    question: "How do you center a block element horizontally using CSS?",
+    options: [
+        "margin: 0 auto",
+        "text-align: center",
+        "padding: 0 auto",
+        "center: block"
+    ],
+    answer: 0
+},
+{
+    question: "Which CSS property is used to create responsive designs with different layouts for different screen sizes?",
+    options: [
+        "media queries",
+        "flexbox",
+        "grid-template",
+        "display: responsive"
+    ],
+    answer: 0
+},
+{
+    question: "How do you create a simple animation in CSS?",
+    options: [
+        "@keyframes",
+        "@animation",
+        "@motion",
+        "@transition"
+    ],
+    answer: 0
+},
+{
+    question: "Which of the following CSS properties is used to add a smooth transition effect to an element?",
+    options: [
+        "transition",
+        "animation",
+        "effect",
+        "transform"
+    ],
+    answer: 0
+},
+{
+    question: "What does the 'transform' property in CSS allow you to do?",
+    options: [
+        "Move, rotate, scale, or skew an element",
+        "Change the color of an element",
+        "Add an outline to an element",
+        "Align elements horizontally"
+    ],
+    answer: 0
+},
+{
+    question: "Which of the following CSS properties is used to create a fade-in effect?",
+    options: [
+        "opacity",
+        "transition-opacity",
+        "fade",
+        "visibility"
+    ],
+    answer: 0
+},
+{
+    question: "What does the 'display: none' CSS property do?",
+    options: [
+        "Hides the element",
+        "Hides the element but keeps the space it takes up",
+        "Makes the element invisible but still clickable",
+        "Disables the element"
+    ],
+    answer: 0
+},
+{
+    question: "Which attribute in HTML input elements is used to define the type of input (like text, password, email)?",
+    options: [
+        "type",
+        "input-type",
+        "data-type",
+        "value"
+    ],
+    answer: 0
+},
+{
+    question: "How can you specify a placeholder text in an HTML input field?",
+    options: [
+        "placeholder",
+        "text",
+        "value",
+        "input-placeholder"
+    ],
+    answer: 0
+},
+{
+    question: "Which CSS property controls the space between grid rows in a grid layout?",
+    options: [
+        "grid-row-gap",
+        "row-gap",
+        "grid-gap",
+        "row-spacing"
+    ],
+    answer: 0
+},
+{
+    question: "How do you make a form input field editable in HTML?",
+    options: [
+        "By default, all input fields are editable",
+        "editable=true",
+        "contenteditable=true",
+        "readonly=false"
+    ],
+    answer: 0
+},
+{
+    question: "What does the 'z-index' property do in CSS?",
+    options: [
+        "Controls the stacking order of elements",
+        "Aligns elements on the same axis",
+        "Sets the transparency of elements",
+        "Resizes elements"
+    ],
+    answer: 0
+},
+{
+    question: "Which CSS property is used to set the width of an element?",
+    options: [
+        "width",
+        "size",
+        "length",
+        "dimension"
+    ],
+    answer: 0
+},
+{
+    question: "How do you make a form input field readonly in HTML?",
+    options: [
+        "readonly",
+        "disabled",
+        "locked",
+        "editable=false"
+    ],
+    answer: 0
+},
+{
+    question: "How do you create a responsive image that scales with the container's size?",
+    options: [
+        "width: 100%; height: auto",
+        "width: auto; height: 100%",
+        "width: 100%; height: 100%",
+        "display: block"
+    ],
+    answer: 0
+},
+{
+    question: "Which of the following is used to animate an element's movement from one position to another in CSS?",
+    options: [
+        "translate",
+        "position",
+        "transition",
+        "animate-move"
+    ],
+    answer: 0
+},
+{
+    question: "Which property is used to control the visibility of elements in CSS?",
+    options: [
+        "visibility",
+        "display",
+        "opacity",
+        "show"
+    ],
+    answer: 0
+},
+{
+    question: "What does the 'float' property do in CSS?",
+    options: [
+        "Makes an element float to the left or right",
+        "Aligns the element vertically",
+        "Adds space around the element",
+        "Aligns the element in the center"
+    ],
+    answer: 0
+},
+{
+    question: "How do you specify the number of columns in a CSS grid layout?",
+    options: [
+        "grid-template-columns",
+        "grid-columns",
+        "grid-layout",
+        "columns-template"
+    ],
+    answer: 0
+},
+{
+    question: "What does the 'box-sizing' property do in CSS?",
+    options: [
+        "Defines how the total width and height of elements are calculated",
+        "Sets the border of an element",
+        "Defines how text is wrapped within an element",
+        "Sets the padding inside the element"
+    ],
+    answer: 0
+},
+  {
+    question: "What is the difference between Java and JavaScript?",
+    options: [
+      "Java is for web development, JavaScript is for mobile apps",
+      "JavaScript is used for backend development, Java is for frontend",
+      "Java is a programming language, JavaScript is a scripting language for web development",
+      "Java and JavaScript are the same"
+    ],
+    answer: "Java is a programming language, JavaScript is a scripting language for web development",
+    explanation: "Java is used for creating standalone applications, while JavaScript is primarily for web pages."
+  },
+  {
+    question: "What are the different data types in JavaScript?",
+    options: [
+      "String, Number, Boolean, Undefined, Null, Symbol, BigInt",
+      "String, Integer, Float, Character, Boolean",
+      "Integer, Float, Array, Object, String",
+      "String, Array, Boolean"
+    ],
+    answer: "String, Number, Boolean, Undefined, Null, Symbol, BigInt",
+    explanation: "JavaScript supports primitive data types like String, Number, Boolean, Undefined, Null, Symbol, and BigInt."
+  },
+  {
+    question: "What is the use of the `this` keyword in JavaScript?",
+    options: [
+      "It refers to the global object in functions",
+      "It refers to the current object or context",
+      "It refers to the previous function",
+      "It refers to the console"
+    ],
+    answer: "It refers to the current object or context",
+    explanation: "The `this` keyword refers to the object in the context where the function is being executed."
+  },
+  {
+    question: "What are closures in JavaScript?",
+    options: [
+      "A way to create private variables",
+      "A function that has access to variables in its outer scope",
+      "A function inside another function",
+      "A type of object"
+    ],
+    answer: "A function that has access to variables in its outer scope",
+    explanation: "A closure allows a function to remember and access variables from its outer function even after that function has finished execution."
+  },
+  {
+    question: "What is the difference between `var`, `let`, and `const`?",
+    options: [
+      "`var` is block-scoped, `let` is function-scoped, `const` cannot be reassigned",
+      "`var` is function-scoped, `let` is block-scoped, `const` is block-scoped and cannot be reassigned",
+      "`var` and `let` are the same, `const` is for constants",
+      "`var` is for local variables, `let` is for global, `const` is for block-scoped"
+    ],
+    answer: "`var` is function-scoped, `let` is block-scoped, `const` is block-scoped and cannot be reassigned",
+    explanation: "`var` has function-level scope, `let` and `const` have block-level scope, and `const` cannot be reassigned once assigned."
+  },
+  {
+    question: "What is hoisting in JavaScript?",
+    options: [
+      "Variables and functions are moved to the top during execution",
+      "Functions are moved to the top during execution",
+      "Variables are moved to the top, but functions are not",
+      "It refers to the way JavaScript executes synchronous code"
+    ],
+    answer: "Variables and functions are moved to the top during execution",
+    explanation: "Hoisting refers to the behavior where JavaScript moves function and variable declarations to the top of their respective scopes during the compilation phase."
+  },
+  {
+    question: "What is the difference between `==` and `===` in JavaScript?",
+    options: [
+      "`==` checks for strict equality, `===` checks for equality with type coercion",
+      "`==` checks for equality with type coercion, `===` checks for strict equality",
+      "`==` is for numbers, `===` is for strings",
+      "`==` checks for reference equality, `===` checks for value equality"
+    ],
+    answer: "`==` checks for equality with type coercion, `===` checks for strict equality",
+    explanation: "`==` compares values after type conversion, while `===` checks both value and type, ensuring strict equality."
+  },
+  {
+    question: "What are promises in JavaScript?",
+    options: [
+      "A method to check if a function is defined",
+      "An object that represents the result of an asynchronous operation",
+      "A type of loop",
+      "A function that runs on a set interval"
+    ],
+    answer: "An object that represents the result of an asynchronous operation",
+    explanation: "A promise represents an operation that will be completed in the future. It can either resolve with a value or reject with an error."
+  },
+  {
+    question: "What are arrays in JavaScript?",
+    options: [
+      "An ordered collection of numbers only",
+      "An unordered collection of data",
+      "A collection of different data types stored in a specific order",
+      "An object that stores key-value pairs"
+    ],
+    answer: "A collection of different data types stored in a specific order",
+    explanation: "Arrays are ordered collections in JavaScript that can hold values of any data type."
+  },
+  {
+    question: "How to create and use functions in JavaScript?",
+    options: [
+      "Use `function` keyword followed by the function name and parameters",
+      "Declare a function inside a loop",
+      "Use `const` keyword to create a function",
+      "Functions are not allowed in JavaScript"
+    ],
+    answer: "Use `function` keyword followed by the function name and parameters",
+    explanation: "Functions are defined with the `function` keyword, followed by the function name and optional parameters."
+  },
+  {
+    question: "What is the event loop in JavaScript?",
+    options: [
+      "A way to handle synchronous code",
+      "A mechanism for handling asynchronous operations in JavaScript",
+      "A loop used to iterate through events",
+      "A function for triggering events"
+    ],
+    answer: "A mechanism for handling asynchronous operations in JavaScript",
+    explanation: "The event loop manages the execution of code, allowing asynchronous operations (like setTimeout or promises) to run without blocking the main thread."
+  },
+  {
+    question: "What is the `null` value in JavaScript?",
+    options: [
+      "A value that represents an undefined object",
+      "A variable that holds a reference to nothing",
+      "A data type used for errors",
+      "A placeholder for undefined values"
+    ],
+    answer: "A variable that holds a reference to nothing",
+    explanation: "`null` represents an intentional absence of any object or value."
+  },
+  {
+    question: "What are the basic JavaScript operators?",
+    options: [
+      "Arithmetic, Comparison, Logical, Assignment",
+      "Arithmetic, Logical, Assignment",
+      "Only Arithmetic",
+      "Only Comparison"
+    ],
+    answer: "Arithmetic, Comparison, Logical, Assignment",
+    explanation: "JavaScript includes operators like Arithmetic (`+`, `-`), Comparison (`==`, `===`), Logical (`&&`, `||`), and Assignment (`=`, `+=`)."
+  },
+  {
+    question: "How can we add a comment in JavaScript?",
+    options: [
+      "/* This is a comment */",
+      "// This is a comment",
+      "# This is a comment",
+      "/* comment() */"
+    ],
+    answer: "// This is a comment",
+    explanation: "Single-line comments use `//`, while multi-line comments use `/* comment */`."
+  },
+  {
+    question: "What is JSON in JavaScript?",
+    options: [
+      "JavaScript Object Notation, used for storing and transporting data",
+      "A function for creating objects",
+      "A data type for binary values",
+      "A method for handling asynchronous operations"
+    ],
+    answer: "JavaScript Object Notation, used for storing and transporting data",
+    explanation: "JSON is a lightweight format for storing and transporting data, often used in APIs and for client-server communication."
+  },
+  {
+    question: "What is the `undefined` value in JavaScript?",
+    options: [
+      "A variable that is not defined",
+      "A variable that has no value assigned yet",
+      "A type of error",
+      "A type of object"
+    ],
+    answer: "A variable that has no value assigned yet",
+    explanation: "`undefined` is assigned to variables that are declared but not yet initialized with a value."
+  },
+  {
+    question: "What is an IIFE (Immediately Invoked Function Expression)?",
+    options: [
+      "A function that runs automatically after being defined",
+      "A function that waits for user input",
+      "A function used for debugging",
+      "A function that executes in a loop"
+    ],
+    answer: "A function that runs automatically after being defined",
+    explanation: "An IIFE is a function that is defined and executed immediately after its definition, often used to avoid polluting the global scope."
+  },
+{
+question: "What is ReactJS?",
+options: [
+  "A programming language",
+  "A JavaScript library for building UIs",
+  "A web browser",
+  "A database"
+],
+answer: 1
+},
+{
+question: "Explain props and state in React.",
+options: [
+  "Props and state are the same",
+  "Props are for passing data; state is for internal data",
+  "State is for parent-to-child communication",
+  "Props and state are for styling"
+],
+answer: 1
+},
+{
+question: "What is JSX?",
+options: [
+  "HTML inside CSS",
+  "CSS inside JavaScript",
+  "JavaScript inside HTML",
+  "A syntax like HTML for React"
+],
+answer: 3
+},
+{
+question: "What is the virtual DOM in React?",
+options: [
+  "The actual DOM structure",
+  "A lightweight copy of the real DOM",
+  "A debugging tool",
+  "A browser extension"
+],
+answer: 1
+},
+{
+question: "What are React components?",
+options: [
+  "Functions or classes that build UI",
+  "HTML elements",
+  "JavaScript objects",
+  "CSS classes"
+],
+answer: 0
+},
+{
+question: "How do browsers read JSX?",
+options: [
+  "Directly as JavaScript",
+  "By using a transpiler like Babel",
+  "By using Webpack",
+  "By converting it to HTML"
+],
+answer: 1
+},
+{
+question: "What is the use of keys in React?",
+options: [
+  "To identify elements in a list",
+  "To define CSS styles",
+  "To add event listeners",
+  "To create class components"
+],
+answer: 0
+},
+{
+question: "What is state in React?",
+options: [
+  "A way to manage dynamic data in a component",
+  "Global data for the app",
+  "An event handler",
+  "A type of component"
+],
+answer: 0
+},
+{
+question: "What is a higher-order component (HOC)?",
+options: [
+  "A class component",
+  "A function that takes a component and returns an enhanced component",
+  "A hook",
+  "A lifecycle method"
+],
+answer: 1
+},
+{
+question: "What is one-way data binding in React?",
+options: [
+  "Data flows from child to parent",
+  "Data flows from parent to child",
+  "Data flows in both directions",
+  "Data is not passed between components"
+],
+answer: 1
+},
+{
+question: "What is conditional rendering in React?",
+options: [
+  "Rendering components based on conditions",
+  "Rendering all components at once",
+  "Changing styles dynamically",
+  "Rendering components with animations"
+],
+answer: 0
+},
+{
+question: "What is React Router?",
+options: [
+  "A state management tool",
+  "A library for routing in React",
+  "A debugging tool",
+  "A component styling library"
+],
+answer: 1
+},
+{
+question: "What is the purpose of the useState hook?",
+options: [
+  "To manage side effects",
+  "To manage state in functional components",
+  "To handle routing",
+  "To access refs"
+],
+answer: 1
+},
+{
+question: "What is the purpose of the useEffect hook?",
+options: [
+  "To handle component lifecycle in functional components",
+  "To manage state in class components",
+  "To add event listeners",
+  "To optimize performance"
+],
+answer: 0
+},
+{
+question: "What is the Context API?",
+options: [
+  "A method to pass global variables",
+  "A debugging tool",
+  "A routing library",
+  "A component for animations"
+],
+answer: 0
+},
+{
+question: "What are React Fragments?",
+options: [
+  "A component for rendering multiple elements without extra nodes",
+  "A debugging tool",
+  "A way to optimize state management",
+  "A CSS-in-JS library"
+],
+answer: 0
+},
+{
+question: "What is React Developer Tools?",
+options: [
+  "A library for testing React apps",
+  "A Chrome extension for debugging React",
+  "A way to manage state",
+  "A router library"
+],
+answer: 1
+},
+{
+question: "What are styled-components in React?",
+options: [
+  "A way to write CSS-in-JS",
+  "A CSS framework",
+  "A debugging tool",
+  "A library for routing"
+],
+answer: 0
+},
+{
+question: "What is prop drilling in React?",
+options: [
+  "Passing props through multiple levels",
+  "A debugging technique",
+  "A way to optimize rendering",
+  "A routing method"
+],
+answer: 0
+},
+{
+question: "What are custom hooks in React?",
+options: [
+  "Predefined hooks",
+  "Hooks created by developers to reuse logic",
+  "Hooks for managing styles",
+  "Hooks for debugging"
+],
+answer: 1
+},
+{
+question: "What is React-redux?",
+options: [
+  "A CSS-in-JS library",
+  "A state management tool for React",
+  "A debugging library",
+  "A router library"
+],
+answer: 1
+},
+{
+question: "What is CORS in React?",
+options: [
+  "A React debugging tool",
+  "A method to allow cross-origin requests",
+  "A CSS-in-JS library",
+  "A React hook"
+],
+answer: 1
+},
+{
+question: "What is Axios in React?",
+options: [
+  "A JavaScript library for making HTTP requests",
+  "A React component library",
+  "A debugging tool",
+  "A routing library"
+],
+answer: 0
+},
+{
+question: "What is lazy loading in React?",
+options: [
+  "A way to manage global state",
+  "A technique to load components only when needed",
+  "A CSS framework",
+  "A routing method"
+],
+answer: 1
+},
+{
+question: "What is flux architecture in Redux?",
+options: [
+  "A database for React apps",
+  "A design pattern for managing app state with unidirectional data flow",
+  "A CSS-in-JS library",
+  "A router library"
+],
+answer: 1
+},
+{
+question: "What are reducers in Redux?",
+options: [
+  "Functions that specify how the app's state changes in response to actions",
+  "CSS styling libraries",
+  "React components",
+  "Debugging tools"
+],
+answer: 0
+},
+{
+question: "What is the purpose of keys in React?",
+options: [
+    "To identify unique elements in a list",
+    "To add event listeners",
+    "To handle state",
+    "To create styles"
+],
+answer: 0
+},
+{
+question: "What is one-way data binding?",
+options: [
+    "Data flows from child to parent",
+    "Data flows from parent to child",
+    "Data flows in both directions",
+    "No data flows"
+],
+answer: 1
+},
+{
+question: "What are React lifecycle methods?",
+options: [
+    "Methods to manage CSS styles",
+    "Methods to control component behavior at different stages",
+    "Functions for routing",
+    "Functions for debugging"
+],
+answer: 1
+},
+{
+question: "What is componentDidMount used for?",
+options: [
+    "To execute code immediately after a component is mounted",
+    "To handle component unmounting",
+    "To update state",
+    "To add props"
+],
+answer: 0
+},
+{
+question: "What is the purpose of componentWillUnmount?",
+options: [
+    "To execute code right before a component is unmounted",
+    "To add new state",
+    "To optimize performance",
+    "To handle child components"
+],
+answer: 0
+},
+{
+question: "What is useRef in React?",
+options: [
+    "A hook for managing mutable refs in functional components",
+    "A CSS framework",
+    "A debugging tool",
+    "A routing library"
+],
+answer: 0
+},
+{
+question: "What is createRef in React?",
+options: [
+    "A way to create refs in class components",
+    "A debugging tool",
+    "A state management tool",
+    "A routing library"
+],
+answer: 0
+},
+{
+question: "What is the difference between useRef and createRef?",
+options: [
+    "useRef is for functional components; createRef is for class components",
+    "Both are the same",
+    "useRef creates new refs every time",
+    "createRef retains value between renders"
+],
+answer: 0
+},
+{
+question: "What is Redux?",
+options: [
+    "A library for managing global state in React apps",
+    "A routing library",
+    "A CSS framework",
+    "A testing library"
+],
+answer: 0
+},
+{
+question: "What are the benefits of using Redux?",
+options: [
+    "Centralized state management",
+    "Optimization of performance",
+    "Easier debugging",
+    "All of the above"
+],
+answer: 3
+},
+{
+question: "What is a Redux store?",
+options: [
+    "An object that holds the app's state",
+    "A CSS library",
+    "A React component",
+    "A debugging tool"
+],
+answer: 0
+},
+{
+question: "What are Redux actions?",
+options: [
+    "Objects describing what should happen in the app",
+    "Components for routing",
+    "Methods for debugging",
+    "Functions for CSS styling"
+],
+answer: 0
+},
+{
+question: "What is a reducer in Redux?",
+options: [
+    "A function that updates the state based on an action",
+    "A component for rendering",
+    "A routing method",
+    "A CSS framework"
+],
+answer: 0
+},
+{
+question: "How can you combine multiple reducers?",
+options: [
+    "Using the combineReducers function",
+    "Using multiple stores",
+    "By separating state manually",
+    "By using hooks"
+],
+answer: 0
+},
+{
+question: "What is the Context API used for?",
+options: [
+    "To manage global data without prop drilling",
+    "For routing",
+    "For styling",
+    "For debugging"
+],
+answer: 0
+},
+{
+question: "What is the difference between Provider and Consumer in Context API?",
+options: [
+    "Provider passes state; Consumer uses the state",
+    "Both are the same",
+    "Provider handles lifecycle",
+    "Consumer passes global data"
+],
+answer: 0
+},
+{
+question: "What is CORS in React?",
+options: [
+    "A method to make cross-origin requests",
+    "A CSS library",
+    "A way to debug React apps",
+    "A routing method"
+],
+answer: 0
+},
+{
+question: "How do you use Axios in React?",
+options: [
+    "By sending asynchronous HTTP requests",
+    "By creating routes",
+    "By handling CSS styles",
+    "By managing state"
+],
+answer: 0
+},
+{
+question: "What is lazy loading?",
+options: [
+    "A method to load components only when needed",
+    "A state management tool",
+    "A routing library",
+    "A debugging tool"
+],
+answer: 0
+},
+{
+question: "What is Flux architecture?",
+options: [
+    "A pattern for managing app state with unidirectional data flow",
+    "A CSS-in-JS library",
+    "A testing tool",
+    "A routing library"
+],
+answer: 0
+},
+{
+question: "What are side effects in React?",
+options: [
+    "Operations outside the React rendering process",
+    "State updates",
+    "CSS changes",
+    "DOM updates"
+],
+answer: 0
+},
+{
+question: "What is a controlled component?",
+options: [
+    "A component where form data is handled by state",
+    "A component using refs",
+    "A component using CSS frameworks",
+    "A debugging component"
+],
+answer: 0
+},
+{
+question: "What is an uncontrolled component?",
+options: [
+    "A component where form data is handled by the DOM",
+    "A component using state",
+    "A routing component",
+    "A state management library"
+],
+answer: 0
+},
+{
+question: "What is server-side rendering (SSR)?",
+options: [
+    "Rendering React components on the server",
+    "Rendering React components on the client",
+    "A way to debug React apps",
+    "A CSS framework"
+],
+answer: 0
+},
+{
+question: "What is hydration in React?",
+options: [
+    "Attaching event listeners to server-rendered markup",
+    "Updating state",
+    "Managing global state",
+    "Creating CSS styles"
+],
+answer: 0
+},
+{
+question: "What is Tailwind CSS?",
+options: [
+  "A CSS framework that provides utility-first classes for styling",
+  "A pre-built theme for websites",
+  "A tool for managing CSS variables",
+  "A JavaScript library for styling"
+],
+answer: 0
+},
+{
+question: "How does Tailwind CSS help with responsive design?",
+options: [
+  "By providing pre-defined media queries",
+  "By using CSS Grid",
+  "By creating custom breakpoints in JavaScript",
+  "By dynamically changing CSS variables"
+],
+answer: 0
+},
+{
+question: "What is a utility-first CSS framework?",
+options: [
+  "A framework where you apply utility classes directly to HTML elements",
+  "A framework that generates CSS based on JavaScript",
+  "A pre-built component library",
+  "A CSS tool for working with JavaScript"
+],
+answer: 0
+},
+{
+question: "How do you add Tailwind to a project?",
+options: [
+  "By installing it via npm or yarn",
+  "By adding a script tag to HTML",
+  "By copying and pasting CSS code into your project",
+  "By using a CDN only"
+],
+answer: 0
+},
+{
+question: "Which class in Tailwind CSS sets the background color to red?",
+options: [
+  "bg-red-500",
+  "text-red-500",
+  "border-red-500",
+  "bg-red"
+],
+answer: 0
+},
+{
+question: "How do you create a margin of 4 units in Tailwind?",
+options: [
+  "m-4",
+  "ml-4",
+  "mt-4",
+  "mr-4"
+],
+answer: 0
+},
+{
+question: "How would you center text horizontally in Tailwind?",
+options: [
+  "text-center",
+  "justify-center",
+  "align-center",
+  "items-center"
+],
+answer: 0
+},
+{
+question: "What does the 'p-4' class do in Tailwind CSS?",
+options: [
+  "Adds padding of 4 units on all sides",
+  "Adds a border of 4px",
+  "Sets padding to 4% of the width",
+  "Adds a background color of 4"
+],
+answer: 0
+},
+{
+question: "What class in Tailwind is used to apply a font size of 2xl?",
+options: [
+  "text-2xl",
+  "font-2xl",
+  "text-xl",
+  "font-xl"
+],
+answer: 0
+},
+{
+question: "How do you apply a responsive font size using Tailwind?",
+options: [
+  "By using text-{size} at different breakpoints like md:text-lg",
+  "By manually adding media queries in CSS",
+  "By using text-size classes only",
+  "By setting font sizes with JavaScript"
+],
+answer: 0
+},
+{
+question: "What class in Tailwind sets the display property to flex?",
+options: [
+  "flex",
+  "inline-flex",
+  "block",
+  "inline"
+],
+answer: 0
+},
+{
+question: "How can you hide an element in Tailwind CSS?",
+options: [
+  "By using the class 'hidden'",
+  "By using the class 'display-none'",
+  "By setting the visibility property to 'none'",
+  "By setting the opacity to 0"
+],
+answer: 0
+},
+{
+question: "How can you apply a border radius of 10px in Tailwind?",
+options: [
+  "rounded-md",
+  "rounded-lg",
+  "rounded-xl",
+  "rounded-10"
+],
+answer: 0
+},
+{
+question: "What does the 'space-x-4' class do in Tailwind?",
+options: [
+  "Adds horizontal space between child elements",
+  "Adds vertical space between child elements",
+  "Sets the margin of 4 units",
+  "Adds a margin to the left"
+],
+answer: 0
+},
+{
+question: "How do you change the text color to blue in Tailwind?",
+options: [
+  "text-blue-500",
+  "bg-blue-500",
+  "border-blue-500",
+  "text-blue"
+],
+answer: 0
+},
+{
+question: "What class in Tailwind is used to make an element take up the full width of its parent?",
+options: [
+  "w-full",
+  "w-auto",
+  "w-screen",
+  "w-100%"
+],
+answer: 0
+},
+{
+question: "How can you add a shadow effect in Tailwind?",
+options: [
+  "By using the shadow class",
+  "By using the box-shadow class",
+  "By using the shadow-lg class",
+  "By manually adding a box-shadow property"
+],
+answer: 0
+},
+{
+question: "What does 'flex-col' do in Tailwind CSS?",
+options: [
+  "Arranges items vertically in a flex container",
+  "Arranges items horizontally in a flex container",
+  "Aligns items at the top",
+  "Aligns items in the center"
+],
+answer: 0
+},
+{
+question: "How can you change the background color to gray in Tailwind?",
+options: [
+  "bg-gray-500",
+  "bg-gray",
+  "bg-grey",
+  "bg-500-gray"
+],
+answer: 0
+},
+{
+question: "How do you add vertical padding of 8 units in Tailwind?",
+options: [
+  "py-8",
+  "px-8",
+  "pt-8",
+  "pb-8"
+],
+answer: 0
+},
+{
+question: "What does the 'container' class do in Tailwind?",
+options: [
+  "Centers the content and sets a max-width for the page",
+  "Adds margin to the element",
+  "Centers all child elements",
+  "Sets the element's width to 100%"
+],
+answer: 0
+},
+{
+question: "How do you make text bold in Tailwind?",
+options: [
+  "font-bold",
+  "text-bold",
+  "font-strong",
+  "text-strong"
+],
+answer: 0
+},
+{
+question: "What does 'hover:bg-red-500' do in Tailwind?",
+options: [
+  "Changes the background color to red on hover",
+  "Changes the text color to red on hover",
+  "Changes the border color to red on hover",
+  "Adds a red shadow on hover"
+],
+answer: 0
+},
+{
+question: "How do you change the width of an element to 50% in Tailwind?",
+options: [
+  "w-1/2",
+  "w-50%",
+  "w-50",
+  "w-half"
+],
+answer: 0
+},
+{
+question: "What does the 'text-gray-300' class do?",
+options: [
+  "Sets the text color to light gray",
+  "Sets the background color to light gray",
+  "Adds a border with light gray color",
+  "Sets the text size to 300px"
+],
+answer: 0
+},
+{
+question: "How do you apply a custom font in Tailwind?",
+options: [
+  "By defining it in the tailwind.config.js file",
+  "By adding a custom CSS class",
+  "By using the font-family class",
+  "By using inline styles"
+],
+answer: 0
+},
+{
+question: "What does 'truncate' do in Tailwind?",
+options: [
+  "Truncates text with an ellipsis when it overflows",
+  "Adds padding to the text",
+  "Centers the text",
+  "Adjusts the font size"
+],
+answer: 0
+},
+{
+question: "How do you enable dark mode in Tailwind?",
+options: [
+  "By using the dark variant classes like dark:bg-black",
+  "By using a dark class on the body",
+  "By using JavaScript to toggle dark mode",
+  "By enabling dark mode in the tailwind.config.js file"
+],
+answer: 0
+},
+{
+question: "What is the default spacing unit in Tailwind?",
+options: [
+  "4px",
+  "8px",
+  "16px",
+  "1rem"
+],
+answer: 0
+},
+{
+question: "How can you create a grid layout in Tailwind?",
+options: [
+  "By using grid and grid-cols classes",
+  "By using flex classes",
+  "By using display:grid in CSS",
+  "By using block elements"
+],
+answer: 0
+}
+                ];
+
+                this.render();
+            }
+
+            handleAnswerSelect(selectedIndex) {
+                if (!this.isAnswered) {
+                    this.selectedAnswer = selectedIndex;
+                    this.isAnswered = true;
+                    
+                    if (selectedIndex === this.questions[this.currentQuestion].answer) {
+                        this.score++;
+                    }
+                    this.render();
+                }
+            }
+
+            handleNext() {
+                if (this.currentQuestion < this.questions.length - 1) {
+                    this.currentQuestion++;
+                    this.selectedAnswer = null;
+                    this.isAnswered = false;
+                } else {
+                    this.showResult = true;
+                }
+                this.render();
+            }
+
+            handleRestart() {
+                this.currentQuestion = 0;
+                this.score = 0;
+                this.showResult = false;
+                this.selectedAnswer = null;
+                this.isAnswered = false;
+                this.render();
+            }
+
+            getOptionClass(index) {
+                if (!this.isAnswered) return '';
+                
+                if (index === this.questions[this.currentQuestion].answer) {
+                    return 'correct';
+                }
+                if (index === this.selectedAnswer && index !== this.questions[this.currentQuestion].answer) {
+                    return 'incorrect';
+                }
+                return 'dimmed';
+            }
+
+            renderResult() {
+                const percentage = ((this.score / this.questions.length) * 100).toFixed(2);
+                return `
+                    <div class="card-header">
+                        <h2 class="card-title">Quiz Complete!</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="result">
+                            <p class="result-score">Your Score: ${this.score} out of ${this.questions.length}</p>
+                            <p class="result-percentage">${percentage}%</p>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="button" onclick="quizApp.handleRestart()">Restart Quiz</button>
+                    </div>
+                `;
+            }
+
+            renderQuestion() {
+                const currentQ = this.questions[this.currentQuestion];
+                return `
+                    <div class="card-header">
+                        <h2 class="card-title">Question ${this.currentQuestion + 1} of ${this.questions.length}</h2>
+                    </div>
+                    <div class="card-content">
+                        <p class="question">${currentQ.question}</p>
+                        <div class="options">
+                            ${currentQ.options.map((option, index) => `
+                                <div class="option ${this.getOptionClass(index)}" onclick="quizApp.handleAnswerSelect(${index})">
+                                    ${this.isAnswered && index === currentQ.answer ? 
+                                        '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                                    ${this.isAnswered && index === this.selectedAnswer && index !== currentQ.answer ?
+                                        '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>' : ''}
+                                    ${option}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="score">Score: ${this.score}/${this.currentQuestion + 1}</div>
+                        <button 
+                            class="button" 
+                            onclick="quizApp.handleNext()"
+                            ${!this.isAnswered ? 'disabled' : ''}
+                        >
+                            ${this.currentQuestion === this.questions.length - 1 ? 'Finish' : 'Next Question'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            render() {
+                this.container.innerHTML = this.showResult ? this.renderResult() : this.renderQuestion();
+            }
+        }
+
+        // Initialize the quiz
+        const quizApp = new QuizApp();
+    </script>
+</body>
+</html>

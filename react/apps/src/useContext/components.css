@@ -1,0 +1,38 @@
+.container {
+    min-height: 100vh;
+    background-color: #0f172a;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.component-a {
+    border: 3px solid #ef4444;
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 0.5rem;
+    background-color: #fee2e2;
+}
+
+.component-b {
+    border: 3px solid #3b82f6;
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 0.5rem;
+    background-color: #dbeafe;
+}
+
+.component-c {
+    border: 3px solid #22c55e;
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 0.5rem;
+    background-color: #dcfce7;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
